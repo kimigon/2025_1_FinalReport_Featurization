@@ -11,6 +11,7 @@ from functools import reduce
 import itertools
 import numpy as np
 import math
+import copy
 
 try:
     # New Py>=3.5 import
@@ -143,19 +144,20 @@ def get_unique_terminations_v2(structure, tol = 0.01, cutoff = 10):
                         slab_id.append(group_number)
             if(len(slab_id)>0):
                 slab_id.sort()
-                surface_id.append(slab_id)
+                if slab_id not in surface_id:
+                    surface_id.append(slab_id)
         #x=[[2,3,4], [3,4,5], [2,3,4]]
         #np.unique(x, axis=0)
+    print("surf_id: ", surface_id, flush=True)
 
-    try:
-        unique = np.unique(surface_id, axis=0)
-    except TypeError:
-        unique = np.unique(surface_id)
-    except ValueError:
-        unique = np.unique(surface_id)
+    unique = copy.deepcopy(surface_id)
 
     num_termination = len(unique)
-    Letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+    Letters = [chr(i) for i in range(ord('A'), ord('Z') + 1)]
+    Letters += [chr(i) for i in range(ord('a'), ord('z') + 1)]
+    for i in range(ord('A'), ord('Z') + 1):
+        for j in range(ord('A'), ord('Z') + 1):
+            Letters.append(chr(i) + chr(j))
     #unique=np.unique(surface_id)
 
     for ind,term in enumerate(surface_id):
