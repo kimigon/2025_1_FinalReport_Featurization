@@ -30,23 +30,27 @@ def featurization(slab, bottom = False, tol = 0.7):
 
     if not error:
         tol = float(tol)
+        if isinstance(slab, Structure):
+          print("Is Strucutre")
+        else:
+          print("Not Structure")
         try:
             struc = read(slab)
         except:
-            error = '1.Could not convert/handle input structure'
+            error = '1.0. Could not convert/handle input structure'
         if error:
             try:
                 struc = AseAtomsAdaptor.get_atoms(slab)
                 error = None
             except:
-                error = '1.Could not convert/handle input structure'
+                error = '1.1.Could not convert/handle input structure'
         if error:
             try:
                 slabdic = Structure.from_dict(slab)
                 struc = AseAtomsAdaptor.get_atoms(slabdic)
                 error = None
             except:
-                error = '1.Could not convert/handle input structure'
+                error = '1.2.Could not convert/handle input structure'
 
     if not error:
         for el in struc.get_chemical_symbols():
