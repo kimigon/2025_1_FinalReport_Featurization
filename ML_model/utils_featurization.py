@@ -392,7 +392,7 @@ def raw_to_final_features(raw,
     for i in raw.index:
         for j in raw.index:
             # j가 i보다 크고, 인덱스 차이가 30 미만인 경우만 비교
-            if j > i and j < i + 30:
+            if j > i and j < i + 10:
                 # 'f_chi' ~ 'bc' 칼럼 구간 전체 값이 거의 같은지 검사
                 if (np.isclose(raw.loc[i, 'f_chi':'bc'].astype(np.double),
                                raw.loc[j, 'f_chi':'bc'].astype(np.double))).all():
