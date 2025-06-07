@@ -185,10 +185,10 @@ def featurization(slab, tol=0.7, ads_sites=None, cutoff=3.0):
                 idx = int(np.argmin(np.linalg.norm(pos_raw - site.coords, axis=1)))
                 cns.append(cn_featurizer.featurize(slab, idx))
 
-            ads_chi.append(np.mean(chis))
-            ads_fie.append(np.mean(fies))
-            ads_ve.append(np.mean(ves))
-            ads_cn.append(np.mean(cns))
+            ads_chi.append(chis)
+            ads_fie.append(fies)
+            ads_ve.append(ves)
+            ads_cn.append(cns)
     else:
         # ads_sites 정보 없을 때
         ads_chi = ads_fie = ads_ve = ads_cn = [None]
@@ -217,7 +217,8 @@ def raw_to_final_features(raw,
     'f_fie', 'f_fie2', 'f_fie3',
     'f_mend', 'f_mend2', 'f_mend3',
     'f_ve', 'f_ve2', 'f_ve3',
-    'cn_1']):
+    'cn_1',
+    'ads_chi', 'ads_fie', 'ads_ve', 'ads_cn']):
     # 삭제할 인덱스를 모으기 위한 리스트
     deleteindex = []
 
@@ -296,6 +297,18 @@ def raw_to_final_features(raw,
                     if mat not in deleteindex:
                         deleteindex.append(mat)
 
+        if 'ads' in label:
+            for mat in raw.index:
+                try:
+                    lst = raw.at[mat, label]
+                    raw.at[mat, label] = statistics.mean(lst)
+                    raw.at[mat, label + '_max'] = max(lst)
+                    raw.at[mat, label + '_min'] = min(lst)
+                    raw.at[mat, label + '_std'] = np.std(lst)
+                except:
+                    if mat not in deleteindex:
+                        deleteindex.append(mat)
+
 
     # AST 오류로 표시된 행 개수 출력
     print('ast errors = ' + str(len(deleteindex)))
@@ -345,8 +358,8 @@ def raw_to_final_features(raw,
             # j가 i보다 크고, 인덱스 차이가 30 미만인 경우만 비교
             if j > i and j < i + 5:
                 # 'f_chi' ~ 'bc' 칼럼 구간 전체 값이 거의 같은지 검사
-                if (np.isclose(raw.loc[i, 'f_chi':'cn_1_std'].astype(np.double),
-                               raw.loc[j, 'f_chi':'cn_1_std'].astype(np.double))).all():
+                if (np.isclose(raw.loc[i, 'f_chi':'ads_cn_std'].astype(np.double),
+                               raw.loc[j, 'f_chi':'ads_cn_std'].astype(np.double))).all():
                     if i not in deleteindex:
                         deleteindex.append(i)
 
