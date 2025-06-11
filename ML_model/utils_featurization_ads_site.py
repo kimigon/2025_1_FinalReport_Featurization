@@ -1,4 +1,3 @@
-
 from math import floor
 import numpy as np
 import math
@@ -68,6 +67,8 @@ def featurization(slab, tol=0.7, ads_sites=None, cutoff=3.0):
         pos_raw = -pos_raw
         z_coords = -z_coords
 
+    [vo_s, vo_p, vo_d, vo_f] = vo_featurizer.featurize(Composition(formula))[4:8]
+
     # 5) 층 그룹화 (생략)
     N_atoms = len(z_coords)
     if N_atoms <= 3:
@@ -118,7 +119,7 @@ def featurization(slab, tol=0.7, ads_sites=None, cutoff=3.0):
     f_1_r   = [elem_cache[el]['radius_inv'] for el in layer0_elems]
     f_fie   = [fie[elem_cache[el]['Z']] for el in layer0_elems]
     f_mend  = [mendeleev[elem_cache[el]['Z']] for el in layer0_elems]
-    #f_ve = [elem_cache[el]['ve'] for el in layer0_elems]
+    f_ve = [elem_cache[el]['ve'] for el in layer0_elems]
     cn_1    = [cn_featurizer.featurize(slab, idx) for idx in layer0_idx]
 
     count1  = layer0_idx.size
@@ -133,7 +134,7 @@ def featurization(slab, tol=0.7, ads_sites=None, cutoff=3.0):
     f_1_r2  = [elem_cache[el]['radius_inv'] for el in layer1_elems]
     f_fie2  = [fie[elem_cache[el]['Z']] for el in layer1_elems]
     f_mend2 = [mendeleev[elem_cache[el]['Z']] for el in layer1_elems]
-    #f_ve2 = [elem_cache[el]['ve'] for el in layer1_elems]
+    f_ve2 = [elem_cache[el]['ve'] for el in layer1_elems]
     #cn_2    = [cn_featurizer.featurize(slab, idx) for idx in layer1_idx]
 
     count2  = layer1_idx.size
@@ -142,20 +143,20 @@ def featurization(slab, tol=0.7, ads_sites=None, cutoff=3.0):
     f_z1_2 = abs(z1 - z2)
 
     # -- Layer 3 --
-    #layer2_idx = np.array(s_indices[2], dtype=int)
-    #layer2_elems = [struc.species[i] for i in layer2_idx]
+    layer2_idx = np.array(s_indices[2], dtype=int)
+    layer2_elems = [struc.species[i] for i in layer2_idx]
 
-    #f_chi3  = [elem_cache[el]['X'] for el in layer2_elems]
-    #f_1_r3  = [elem_cache[el]['radius_inv'] for el in layer2_elems]
-    #f_fie3  = [fie[elem_cache[el]['Z']] for el in layer2_elems]
-    #f_mend3 = [mendeleev[elem_cache[el]['Z']] for el in layer2_elems]
-    #f_ve3 = [elem_cache[el]['ve'] for el in layer2_elems]
+    f_chi3  = [elem_cache[el]['X'] for el in layer2_elems]
+    f_1_r3  = [elem_cache[el]['radius_inv'] for el in layer2_elems]
+    f_fie3  = [fie[elem_cache[el]['Z']] for el in layer2_elems]
+    f_mend3 = [mendeleev[elem_cache[el]['Z']] for el in layer2_elems]
+    f_ve3 = [elem_cache[el]['ve'] for el in layer2_elems]
     #cn_3    = [cn_featurizer.featurize(slab, idx) for idx in layer2_idx]
 
-    #count3  = layer2_idx.size
-    #f_packing_area3 = count3 / base_area
-    #z3 = z_coords[layer2_idx[0]]
-    #f_z1_3 = abs(z1 - z3)
+    count3  = layer2_idx.size
+    f_packing_area3 = count3 / base_area
+    z3 = z_coords[layer2_idx[0]]
+    f_z1_3 = abs(z1 - z3)
 
     # 12) Adsorption Site 주변 원자 특성 계산
     ads_chi = []
@@ -202,26 +203,27 @@ def featurization(slab, tol=0.7, ads_sites=None, cutoff=3.0):
     result = [
         None, 
         # 기존 0~11단계에서 생성된 모든 피처들...
-        f_chi, f_chi2, #f_chi3,
-        f_1_r, f_1_r2, #f_1_r3,
-        f_fie, f_fie2, #f_fie3,
-        f_mend, f_mend2, #f_mend3,
-        #f_ve, f_ve2, f_ve3,
-        f_z1_2, #f_z1_3,
-        f_packing_area1, f_packing_area2, #f_packing_area3,
+        f_chi, f_chi2, f_chi3,
+        f_1_r, f_1_r2, f_1_r3,
+        f_fie, f_fie2, f_fie3,
+        f_mend, f_mend2, f_mend3,
+        f_ve, f_ve2, f_ve3,
+        f_z1_2, f_z1_3,
+        f_packing_area1, f_packing_area2, f_packing_area3,
         cn_1,
         bc,
-        # 이제 추가된 adsorption site 피처
+        vo_s, vo_p, vo_d, vo_f,
+        # adsorption site 피처
         ads_chi, ads_fie, ads_ve, ads_cn, ads_eac
     ]
     return result
 
 def raw_to_final_features(raw,
-                          labels=['f_chi', 'f_chi2', #'f_chi3',
-    'f_1_r', 'f_1_r2', #'f_1_r3',
-    'f_fie', 'f_fie2', #'f_fie3',
-    'f_mend', 'f_mend2', #'f_mend3',
-    #'f_ve', 'f_ve2', 'f_ve3',
+                          labels=['f_chi', 'f_chi2', 'f_chi3',
+    'f_1_r', 'f_1_r2', 'f_1_r3',
+    'f_fie', 'f_fie2', 'f_fie3',
+    'f_mend', 'f_mend2', 'f_mend3',
+    'f_ve', 'f_ve2', 'f_ve3',
     'cn_1',
     'ads_chi', 'ads_fie', 'ads_ve', 'ads_cn', 'ads_eac']):
     # 삭제할 인덱스를 모으기 위한 리스트
@@ -236,6 +238,7 @@ def raw_to_final_features(raw,
                     raw.at[mat, label] = statistics.mean(lst)
                     raw.at[mat, label + '_max'] = max(lst)
                     raw.at[mat, label + '_min'] = min(lst)
+                    raw.at[mat, label + '_std'] = np.std(lst)
                 except:
                     if mat not in deleteindex:
                         deleteindex.append(mat)
@@ -247,6 +250,7 @@ def raw_to_final_features(raw,
                     raw.at[mat, label] = statistics.mean(lst)
                     raw.at[mat, label + '_max'] = max(lst)
                     raw.at[mat, label + '_min'] = min(lst)
+                    raw.at[mat, label + '_std'] = np.std(lst)
                 except:
                     if mat not in deleteindex:
                         deleteindex.append(mat)
@@ -258,6 +262,7 @@ def raw_to_final_features(raw,
                     raw.at[mat, label] = statistics.mean(lst)
                     raw.at[mat, label + '_max'] = max(lst)
                     raw.at[mat, label + '_min'] = min(lst)
+                    raw.at[mat, label + '_std'] = np.std(lst)
                 except:
                     if mat not in deleteindex:
                         deleteindex.append(mat)
@@ -269,6 +274,7 @@ def raw_to_final_features(raw,
                     raw.at[mat, label] = statistics.mean(lst)
                     raw.at[mat, label + '_max'] = max(lst)
                     raw.at[mat, label + '_min'] = min(lst)
+                    raw.at[mat, label + '_std'] = np.std(lst)
                 except:
                     if mat not in deleteindex:
                         deleteindex.append(mat)
@@ -281,6 +287,7 @@ def raw_to_final_features(raw,
                     raw.at[mat, label] = statistics.mean(flattened_list)
                     raw.at[mat, label + '_max'] = max(flattened_list)
                     raw.at[mat, label + '_min'] = min(flattened_list)
+                    raw.at[mat, label + '_std'] = np.std(flattened_list)
                 except:
                     if mat not in deleteindex:
                         deleteindex.append(mat)
@@ -292,6 +299,7 @@ def raw_to_final_features(raw,
                     raw.at[mat, label] = statistics.mean(lst)
                     raw.at[mat, label + '_max'] = max(lst)
                     raw.at[mat, label + '_min'] = min(lst)
+                    raw.at[mat, label + '_std'] = np.std(lst)
                 except:
                     if mat not in deleteindex:
                         deleteindex.append(mat)
@@ -340,7 +348,6 @@ def raw_to_final_features(raw,
                 except:
                     if mat not in deleteindex:
                         deleteindex.append(mat)
-        print(deleteindex)
 
     # AST 오류로 표시된 행 개수 출력
     print('ast errors = ' + str(len(deleteindex)))
@@ -365,17 +372,17 @@ def raw_to_final_features(raw,
 
     # 먼저 필요한 칼럼들이 존재하는지 확인 (만약, 일부 row에 값이 없을 수 있으므로)
     # 존재하지 않는다면 그냥 0으로 채우거나 NaN 처리해도 무방
-    for col in ['f_chi_max', 'f_chi2_max', #'f_chi3_max',
-                'f_chi_min', 'f_chi2_min', #'f_chi3_min'
+    for col in ['f_chi_max', 'f_chi2_max', 'f_chi3_max',
+                'f_chi_min', 'f_chi2_min', 'f_chi3_min'
                 ]:
         if col not in raw.columns:
             # 해당 칼럼이 없으면 0을 기본값으로 추가
             raw[col] = 0.0
 
     # chi_max들 중 행별 최대값, chi_min들 중 행별 최소값 계산
-    chi_max_cols = ['f_chi_max', 'f_chi2_max', #'f_chi3_max'
+    chi_max_cols = ['f_chi_max', 'f_chi2_max', 'f_chi3_max'
                     ]
-    chi_min_cols = ['f_chi_min', 'f_chi2_min', #'f_chi3_min'
+    chi_min_cols = ['f_chi_min', 'f_chi2_min', 'f_chi3_min'
                     ]
 
     # 행별 최대값·최소값 Series 생성
@@ -393,8 +400,8 @@ def raw_to_final_features(raw,
             # j가 i보다 크고, 인덱스 차이가 30 미만인 경우만 비교
             if j > i and j < i + 5:
                 # 'f_chi' ~ 'bc' 칼럼 구간 전체 값이 거의 같은지 검사
-                if (np.isclose(raw.loc[i, 'f_chi':'ads_cn_min'].astype(np.double),
-                               raw.loc[j, 'f_chi':'ads_cn_min'].astype(np.double))).all():
+                if (np.isclose(raw.loc[i, 'f_chi':'ads_eac'].astype(np.double),
+                               raw.loc[j, 'f_chi':'ads_eac'].astype(np.double))).all():
                     if i not in deleteindex:
                         deleteindex.append(i)
 
